@@ -64,7 +64,7 @@ fun UnitConverterApp() {
             )
         },
 
-    ) { innerPadding ->
+        ) { innerPadding ->
         UnitConverterScreen(Modifier.padding(innerPadding))
     }
 }
@@ -72,6 +72,70 @@ fun UnitConverterApp() {
 enum class ConversionCategory {
     LENGTH, WEIGHT, VOLUME, TEMPERATURE, TIME
 }
+
+// Maps for full unit names and their abbreviations
+val unitMap = mapOf(
+    ConversionCategory.LENGTH to listOf(
+        "Millimeter",
+        "Centimeter",
+        "Meter",
+        "Kilometer",
+        "Inch",
+        "Feet",
+        "Yard",
+        "Mile"
+    ),
+    ConversionCategory.WEIGHT to listOf("Milligram", "Gram", "Kilogram", "Pound", "Ounce", "Ton"),
+    ConversionCategory.VOLUME to listOf(
+        "Milliliter",
+        "Liter",
+        "Cubic Meter",
+        "Teaspoon",
+        "Tablespoon",
+        "Cup",
+        "Pint",
+        "Quart",
+        "Gallon"
+    ),
+    ConversionCategory.TEMPERATURE to listOf("Celsius", "Fahrenheit", "Kelvin"),
+    ConversionCategory.TIME to listOf("Second", "Minute", "Hour", "Day", "Week", "Month", "Year")
+)
+
+val unitAbbreviations = mapOf(
+    "Millimeter" to "mm",
+    "Centimeter" to "cm",
+    "Meter" to "m",
+    "Kilometer" to "km",
+    "Inch" to "in",
+    "Feet" to "ft",
+    "Yard" to "yd",
+    "Mile" to "mi",
+    "Milligram" to "mg",
+    "Gram" to "g",
+    "Kilogram" to "kg",
+    "Pound" to "lb",
+    "Ounce" to "oz",
+    "Ton" to "t",
+    "Milliliter" to "ml",
+    "Liter" to "L",
+    "Cubic Meter" to "m³",
+    "Teaspoon" to "tsp",
+    "Tablespoon" to "tbsp",
+    "Cup" to "cup",
+    "Pint" to "pt",
+    "Quart" to "qt",
+    "Gallon" to "gal",
+    "Celsius" to "°C",
+    "Fahrenheit" to "°F",
+    "Kelvin" to "K",
+    "Second" to "s",
+    "Minute" to "min",
+    "Hour" to "hr",
+    "Day" to "day",
+    "Week" to "wk",
+    "Month" to "mo",
+    "Year" to "yr"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,14 +152,6 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
     val history = remember { mutableStateListOf<String>() }
     var showHistory by remember { mutableStateOf(false) }
 
-    val unitMap = mapOf(
-        ConversionCategory.LENGTH to listOf("Millimeter", "Centimeter", "Meter", "Kilometer", "Inch", "Feet", "Yard", "Mile"),
-        ConversionCategory.WEIGHT to listOf("Milligram", "Gram", "Kilogram", "Pound", "Ounce", "Ton"),
-        ConversionCategory.VOLUME to listOf("Milliliter", "Liter", "Cubic Meter", "Teaspoon", "Tablespoon", "Cup", "Pint", "Quart", "Gallon"),
-        ConversionCategory.TEMPERATURE to listOf("Celsius", "Fahrenheit", "Kelvin"),
-        ConversionCategory.TIME to listOf("Second", "Minute", "Hour", "Day", "Week", "Month", "Year")
-    )
-
     val currentUnits = unitMap[selectedCategory] ?: emptyList()
 
     LaunchedEffect(key1 = selectedCategory) {
@@ -106,18 +162,24 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
     }
 
     Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CategorySelector(selectedCategory) { selectedCategory = it }
 
         Card(
-            modifier = Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(12.dp)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(8.dp, RoundedCornerShape(12.dp)),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 OutlinedTextField(
@@ -135,7 +197,16 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    UnitDropdown(iExpanded, { iExpanded = false }, { iExpanded = true }, inputUnit, { inputUnit = it; result = "" }, currentUnits, "From", Modifier.weight(1f))
+                    UnitDropdown(
+                        iExpanded,
+                        { iExpanded = false },
+                        { iExpanded = true },
+                        inputUnit,
+                        { inputUnit = it; result = "" },
+                        currentUnits,
+                        "From",
+                        Modifier.weight(1f)
+                    )
 
                     IconButton(
                         onClick = {
@@ -147,26 +218,51 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                                 result = ""
                             }
                         },
-                        modifier = Modifier.size(48.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                RoundedCornerShape(8.dp)
+                            )
                     ) {
-                        Icon(Icons.Filled.CompareArrows, contentDescription = "Swap units", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Icon(
+                            Icons.Filled.CompareArrows,
+                            contentDescription = "Swap units",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
 
-                    UnitDropdown(oExpanded, { oExpanded = false }, { oExpanded = true }, outputUnit, { outputUnit = it; result = "" }, currentUnits, "To", Modifier.weight(1f))
+                    UnitDropdown(
+                        oExpanded,
+                        { oExpanded = false },
+                        { oExpanded = true },
+                        outputUnit,
+                        { outputUnit = it; result = "" },
+                        currentUnits,
+                        "To",
+                        Modifier.weight(1f)
+                    )
                 }
 
                 Button(
                     onClick = {
                         val inputDouble = inputValue.toDoubleOrNull()
                         if (inputDouble == null || inputUnit.isEmpty() || outputUnit.isEmpty()) {
-                            Toast.makeText(context, "Please enter a valid number and select units", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Please enter a valid number and select units",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } else {
-                            val conversionResult = convert(inputDouble, inputUnit, outputUnit, selectedCategory)
+                            val conversionResult =
+                                convert(inputDouble, inputUnit, outputUnit, selectedCategory)
                             result = String.format("%.4f", conversionResult)
                             history.add(0, "$inputValue $inputUnit = $result $outputUnit")
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
                     enabled = inputValue.isNotEmpty() && inputUnit.isNotEmpty() && outputUnit.isNotEmpty()
                 ) {
                     Text("Convert", fontSize = 16.sp)
@@ -174,15 +270,37 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
             }
         }
 
-        AnimatedVisibility(visible = result.isNotEmpty(), enter = fadeIn(tween(500)), exit = fadeOut(tween(500))) {
+        AnimatedVisibility(
+            visible = result.isNotEmpty(),
+            enter = fadeIn(tween(500)),
+            exit = fadeOut(tween(500))
+        ) {
             Card(
-                modifier = Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(12.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(8.dp, RoundedCornerShape(12.dp)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
-                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Result", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
-                    Text(result, style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.onPrimaryContainer, textAlign = TextAlign.Center)
-                    Text(outputUnit, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Result",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        result,
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        outputUnit,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
                 }
             }
         }
@@ -200,12 +318,13 @@ fun UnitDropdown(
 ) {
     Box(modifier = modifier.clickable { onExpandChange() }) {
         OutlinedTextField(
-            value = selectedUnit,
+            // FIXED: Display the abbreviation, or the full name if no abbreviation exists.
+            value = unitAbbreviations[selectedUnit] ?: selectedUnit,
             onValueChange = {},
             label = { Text(label) },
             trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = false, // Disable the text field to let the Box handle the click
+            enabled = false,
             colors = OutlinedTextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
                 disabledContainerColor = MaterialTheme.colorScheme.surface,
@@ -214,9 +333,14 @@ fun UnitDropdown(
                 disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = onDismiss, modifier = Modifier.fillMaxWidth()) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismiss,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             units.forEach { unit ->
                 DropdownMenuItem(
+                    // The dropdown list still shows the full, descriptive name
                     text = { Text(unit) },
                     onClick = {
                         onUnitSelected(unit)
@@ -229,8 +353,10 @@ fun UnitDropdown(
 }
 
 @Composable
-fun CategorySelector(selectedCategory: ConversionCategory, onCategorySelected: (ConversionCategory) -> Unit) {
-    // These icons require the "material-icons-extended" dependency
+fun CategorySelector(
+    selectedCategory: ConversionCategory,
+    onCategorySelected: (ConversionCategory) -> Unit
+) {
     val categories: List<Pair<ConversionCategory, ImageVector>> = listOf(
         ConversionCategory.LENGTH to Icons.Filled.Straighten,
         ConversionCategory.WEIGHT to Icons.Filled.Scale,
@@ -238,18 +364,34 @@ fun CategorySelector(selectedCategory: ConversionCategory, onCategorySelected: (
         ConversionCategory.TEMPERATURE to Icons.Filled.Thermostat,
         ConversionCategory.TIME to Icons.Filled.Schedule
     )
-    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         categories.forEach { (category, icon) ->
             val isSelected = category == selectedCategory
             Box(
-                modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).clickable { onCategorySelected(category) }
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onCategorySelected(category) }
                     .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(icon, contentDescription = category.name, tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = category.name.take(4).uppercase(), style = MaterialTheme.typography.labelSmall, color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        icon,
+                        contentDescription = category.name,
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = category.name.take(4).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -257,23 +399,55 @@ fun CategorySelector(selectedCategory: ConversionCategory, onCategorySelected: (
 }
 
 @Composable
-fun HistorySection(history: List<String>, showHistory: Boolean, onClearHistory: () -> Unit, onToggleHistory: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+fun HistorySection(
+    history: List<String>,
+    showHistory: Boolean,
+    onClearHistory: () -> Unit,
+    onToggleHistory: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column {
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("History", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "History",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
                 IconButton(onClick = onToggleHistory) {
-                    val icon = if (showHistory) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
-                    Icon(icon, contentDescription = if (showHistory) "Hide history" else "Show history")
+                    val icon =
+                        if (showHistory) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
+                    Icon(
+                        icon,
+                        contentDescription = if (showHistory) "Hide history" else "Show history"
+                    )
                 }
                 IconButton(onClick = onClearHistory, enabled = history.isNotEmpty()) {
                     Icon(Icons.Filled.Delete, contentDescription = "Clear history")
                 }
             }
             AnimatedVisibility(visible = showHistory && history.isNotEmpty()) {
-                LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
                     items(history) { item ->
-                        Text(item, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
+                        Text(
+                            item,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        )
                         Divider(modifier = Modifier.padding(bottom = 4.dp))
                     }
                 }
@@ -284,37 +458,48 @@ fun HistorySection(history: List<String>, showHistory: Boolean, onClearHistory: 
 
 
 // --- Conversion Logic (No Changes Needed Here) ---
-// (The rest of the file is the same)
-fun convert(value: Double, fromUnit: String, toUnit: String, category: ConversionCategory): Double = when (category) {
-    ConversionCategory.LENGTH -> convertLength(value, fromUnit, toUnit)
-    ConversionCategory.WEIGHT -> convertWeight(value, fromUnit, toUnit)
-    ConversionCategory.VOLUME -> convertVolume(value, fromUnit, toUnit)
-    ConversionCategory.TEMPERATURE -> convertTemperature(value, fromUnit, toUnit)
-    ConversionCategory.TIME -> convertTime(value, fromUnit, toUnit)
-}
+fun convert(value: Double, fromUnit: String, toUnit: String, category: ConversionCategory): Double =
+    when (category) {
+        ConversionCategory.LENGTH -> convertLength(value, fromUnit, toUnit)
+        ConversionCategory.WEIGHT -> convertWeight(value, fromUnit, toUnit)
+        ConversionCategory.VOLUME -> convertVolume(value, fromUnit, toUnit)
+        ConversionCategory.TEMPERATURE -> convertTemperature(value, fromUnit, toUnit)
+        ConversionCategory.TIME -> convertTime(value, fromUnit, toUnit)
+    }
 
-fun convertWithFactors(value: Double, fromUnit: String, toUnit: String, factors: Map<String, Double>): Double {
+fun convertWithFactors(
+    value: Double,
+    fromUnit: String,
+    toUnit: String,
+    factors: Map<String, Double>
+): Double {
     if (fromUnit == toUnit) return value
     val fromFactor = factors[fromUnit] ?: return 0.0
     val toFactor = factors[toUnit] ?: return 0.0
     return value * fromFactor / toFactor
 }
 
-fun convertLength(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(value, fromUnit, toUnit, mapOf(
-    "Millimeter" to 0.001, "Centimeter" to 0.01, "Meter" to 1.0, "Kilometer" to 1000.0,
-    "Inch" to 0.0254, "Feet" to 0.3048, "Yard" to 0.9144, "Mile" to 1609.34
-))
+fun convertLength(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
+    value, fromUnit, toUnit, mapOf(
+        "Millimeter" to 0.001, "Centimeter" to 0.01, "Meter" to 1.0, "Kilometer" to 1000.0,
+        "Inch" to 0.0254, "Feet" to 0.3048, "Yard" to 0.9144, "Mile" to 1609.34
+    )
+)
 
-fun convertWeight(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(value, fromUnit, toUnit, mapOf(
-    "Milligram" to 0.000001, "Gram" to 0.001, "Kilogram" to 1.0,
-    "Pound" to 0.453592, "Ounce" to 0.0283495, "Ton" to 1000.0
-))
+fun convertWeight(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
+    value, fromUnit, toUnit, mapOf(
+        "Milligram" to 0.000001, "Gram" to 0.001, "Kilogram" to 1.0,
+        "Pound" to 0.453592, "Ounce" to 0.0283495, "Ton" to 1000.0
+    )
+)
 
-fun convertVolume(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(value, fromUnit, toUnit, mapOf(
-    "Milliliter" to 0.001, "Liter" to 1.0, "Cubic Meter" to 1000.0,
-    "Teaspoon" to 0.00492892, "Tablespoon" to 0.0147868, "Cup" to 0.24,
-    "Pint" to 0.473176, "Quart" to 0.946353, "Gallon" to 3.78541
-))
+fun convertVolume(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
+    value, fromUnit, toUnit, mapOf(
+        "Milliliter" to 0.001, "Liter" to 1.0, "Cubic Meter" to 1000.0,
+        "Teaspoon" to 0.00492892, "Tablespoon" to 0.0147868, "Cup" to 0.24,
+        "Pint" to 0.473176, "Quart" to 0.946353, "Gallon" to 3.78541
+    )
+)
 
 fun convertTemperature(value: Double, fromUnit: String, toUnit: String): Double {
     if (fromUnit == toUnit) return value
@@ -324,24 +509,29 @@ fun convertTemperature(value: Double, fromUnit: String, toUnit: String): Double 
             "Kelvin" -> value + 273.15
             else -> value
         }
+
         "Fahrenheit" -> when (toUnit) {
             "Celsius" -> (value - 32) * 5 / 9
             "Kelvin" -> (value - 32) * 5 / 9 + 273.15
             else -> value
         }
+
         "Kelvin" -> when (toUnit) {
             "Celsius" -> value - 273.15
             "Fahrenheit" -> (value - 273.15) * 9 / 5 + 32
             else -> value
         }
+
         else -> value
     }
 }
 
-fun convertTime(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(value, fromUnit, toUnit, mapOf(
-    "Second" to 1.0, "Minute" to 60.0, "Hour" to 3600.0, "Day" to 86400.0,
-    "Week" to 604800.0, "Month" to 2629800.0, "Year" to 31557600.0
-))
+fun convertTime(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
+    value, fromUnit, toUnit, mapOf(
+        "Second" to 1.0, "Minute" to 60.0, "Hour" to 3600.0, "Day" to 86400.0,
+        "Week" to 604800.0, "Month" to 2629800.0, "Year" to 31557600.0
+    )
+)
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
