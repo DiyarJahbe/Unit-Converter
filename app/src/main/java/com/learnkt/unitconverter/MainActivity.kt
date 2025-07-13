@@ -33,10 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnkt.unitconverter.ui.theme.*
 
+// Main entry point of the app
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Enables drawing behind the system bars
         enableEdgeToEdge()
+        // Sets the main UI content of the activity
         setContent {
             UnitConverterTheme {
                 UnitConverterApp()
@@ -45,6 +48,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Sets up the main app layout with a top bar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnitConverterApp() {
@@ -63,17 +67,18 @@ fun UnitConverterApp() {
                 )
             )
         },
-
-        ) { innerPadding ->
+        // The main screen content is placed here
+    ) { innerPadding ->
         UnitConverterScreen(Modifier.padding(innerPadding))
     }
 }
 
+// Defines the different categories for conversion
 enum class ConversionCategory {
     LENGTH, WEIGHT, VOLUME, TEMPERATURE, TIME
 }
 
-// Maps for full unit names and their abbreviations
+// Maps each conversion category to a list of its available units
 val unitMap = mapOf(
     ConversionCategory.LENGTH to listOf(
         "Millimeter",
@@ -101,6 +106,7 @@ val unitMap = mapOf(
     ConversionCategory.TIME to listOf("Second", "Minute", "Hour", "Day", "Week", "Month", "Year")
 )
 
+// Maps the full unit names to their shorter abbreviations
 val unitAbbreviations = mapOf(
     "Millimeter" to "mm",
     "Centimeter" to "cm",
@@ -137,23 +143,28 @@ val unitAbbreviations = mapOf(
     "Year" to "yr"
 )
 
+// The main screen composable that holds all UI elements and state
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnitConverterScreen(modifier: Modifier = Modifier) {
+    // Gets the current context, useful for showing Toasts
     val context = LocalContext.current
 
+    // State variables to hold user input and results
     var inputValue by remember { mutableStateOf("") }
     var inputUnit by remember { mutableStateOf("") }
     var outputUnit by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
-    var iExpanded by remember { mutableStateOf(false) }
-    var oExpanded by remember { mutableStateOf(false) }
+    var iExpanded by remember { mutableStateOf(false) } // State for input dropdown menu
+    var oExpanded by remember { mutableStateOf(false) } // State for output dropdown menu
     var selectedCategory by remember { mutableStateOf(ConversionCategory.LENGTH) }
-    val history = remember { mutableStateListOf<String>() }
-    var showHistory by remember { mutableStateOf(false) }
+    val history = remember { mutableStateListOf<String>() } // List to store conversion history
+    var showHistory by remember { mutableStateOf(false) } // State to toggle history visibility
 
+    // Gets the list of units for the currently selected category
     val currentUnits = unitMap[selectedCategory] ?: emptyList()
 
+    // Resets the input fields when the conversion category changes
     LaunchedEffect(key1 = selectedCategory) {
         inputValue = ""
         result = ""
@@ -161,6 +172,7 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
         outputUnit = currentUnits.getOrElse(1) { "" }
     }
 
+    // Main layout column for the screen
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -168,8 +180,10 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Displays the category selection buttons
         CategorySelector(selectedCategory) { selectedCategory = it }
 
+        // Card containing the input fields and convert button
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -182,6 +196,7 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Text field for the user to enter a value
                 OutlinedTextField(
                     value = inputValue,
                     onValueChange = { inputValue = it },
@@ -192,11 +207,13 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                     singleLine = true
                 )
 
+                // Row for the two unit dropdowns and the swap button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // "From" unit dropdown
                     UnitDropdown(
                         iExpanded,
                         { iExpanded = false },
@@ -208,11 +225,13 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                         Modifier.weight(1f)
                     )
 
+                    // Button to swap the input and output units
                     IconButton(
                         onClick = {
                             val temp = inputUnit
                             inputUnit = outputUnit
                             outputUnit = temp
+                            // If a result exists, move it to the input value
                             if (result.isNotEmpty()) {
                                 inputValue = result
                                 result = ""
@@ -232,6 +251,7 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                         )
                     }
 
+                    // "To" unit dropdown
                     UnitDropdown(
                         oExpanded,
                         { oExpanded = false },
@@ -244,9 +264,11 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                     )
                 }
 
+                // Button to trigger the conversion
                 Button(
                     onClick = {
                         val inputDouble = inputValue.toDoubleOrNull()
+                        // Checks for valid input before converting
                         if (inputDouble == null || inputUnit.isEmpty() || outputUnit.isEmpty()) {
                             Toast.makeText(
                                 context,
@@ -254,15 +276,18 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
                                 Toast.LENGTH_SHORT
                             ).show()
                         } else {
+                            // Performs the conversion and updates the result state
                             val conversionResult =
                                 convert(inputDouble, inputUnit, outputUnit, selectedCategory)
                             result = String.format("%.4f", conversionResult)
+                            // Adds the conversion to the history list
                             history.add(0, "$inputValue $inputUnit = $result $outputUnit")
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
+                    // Button is disabled if input fields are empty
                     enabled = inputValue.isNotEmpty() && inputUnit.isNotEmpty() && outputUnit.isNotEmpty()
                 ) {
                     Text("Convert", fontSize = 16.sp)
@@ -270,6 +295,7 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        // Animated visibility for the result card, only shows when there is a result
         AnimatedVisibility(
             visible = result.isNotEmpty(),
             enter = fadeIn(tween(500)),
@@ -305,10 +331,12 @@ fun UnitConverterScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        // Displays the history section
         HistorySection(history, showHistory, { history.clear() }, { showHistory = !showHistory })
     }
 }
 
+// A reusable composable for the unit selection dropdown menus
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnitDropdown(
@@ -317,14 +345,15 @@ fun UnitDropdown(
     label: String, modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.clickable { onExpandChange() }) {
+        // A disabled text field that looks like a dropdown button
         OutlinedTextField(
-            // FIXED: Display the abbreviation, or the full name if no abbreviation exists.
+            // Displays the abbreviation of the selected unit
             value = unitAbbreviations[selectedUnit] ?: selectedUnit,
             onValueChange = {},
             label = { Text(label) },
             trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = false,
+            enabled = false, // Prevents user from typing in it
             colors = OutlinedTextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
                 disabledContainerColor = MaterialTheme.colorScheme.surface,
@@ -333,6 +362,7 @@ fun UnitDropdown(
                 disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
+        // The actual dropdown menu that appears when clicked
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = onDismiss,
@@ -340,11 +370,11 @@ fun UnitDropdown(
         ) {
             units.forEach { unit ->
                 DropdownMenuItem(
-                    // The dropdown list still shows the full, descriptive name
+                    // The dropdown list shows the full, descriptive name
                     text = { Text(unit) },
                     onClick = {
-                        onUnitSelected(unit)
-                        onDismiss()
+                        onUnitSelected(unit) // Updates the selected unit
+                        onDismiss() // Closes the dropdown
                     }
                 )
             }
@@ -352,11 +382,13 @@ fun UnitDropdown(
     }
 }
 
+// A row of buttons for selecting the conversion category
 @Composable
 fun CategorySelector(
     selectedCategory: ConversionCategory,
     onCategorySelected: (ConversionCategory) -> Unit
 ) {
+    // List of categories with their corresponding icons
     val categories: List<Pair<ConversionCategory, ImageVector>> = listOf(
         ConversionCategory.LENGTH to Icons.Filled.Straighten,
         ConversionCategory.WEIGHT to Icons.Filled.Scale,
@@ -370,6 +402,7 @@ fun CategorySelector(
             .padding(bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Creates a button for each category
         categories.forEach { (category, icon) ->
             val isSelected = category == selectedCategory
             Box(
@@ -377,6 +410,7 @@ fun CategorySelector(
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { onCategorySelected(category) }
+                    // Changes background color if the category is selected
                     .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
@@ -388,7 +422,7 @@ fun CategorySelector(
                         tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = category.name.take(4).uppercase(),
+                        text = category.name.take(4).uppercase(), // Shows a short name
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -398,6 +432,7 @@ fun CategorySelector(
     }
 }
 
+// A card that displays the conversion history
 @Composable
 fun HistorySection(
     history: List<String>,
@@ -410,6 +445,7 @@ fun HistorySection(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column {
+            // Row containing the title and control buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -421,6 +457,7 @@ fun HistorySection(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
+                // Button to show or hide the history list
                 IconButton(onClick = onToggleHistory) {
                     val icon =
                         if (showHistory) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
@@ -429,10 +466,12 @@ fun HistorySection(
                         contentDescription = if (showHistory) "Hide history" else "Show history"
                     )
                 }
+                // Button to clear all history items
                 IconButton(onClick = onClearHistory, enabled = history.isNotEmpty()) {
                     Icon(Icons.Filled.Delete, contentDescription = "Clear history")
                 }
             }
+            // The list of history items, which is only visible when toggled
             AnimatedVisibility(visible = showHistory && history.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
@@ -448,7 +487,7 @@ fun HistorySection(
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
                         )
-                        Divider(modifier = Modifier.padding(bottom = 4.dp))
+                        HorizontalDivider(modifier = Modifier.padding(bottom = 4.dp))
                     }
                 }
             }
@@ -456,8 +495,7 @@ fun HistorySection(
     }
 }
 
-
-// --- Conversion Logic (No Changes Needed Here) ---
+// Main conversion function that calls the correct specific conversion logic
 fun convert(value: Double, fromUnit: String, toUnit: String, category: ConversionCategory): Double =
     when (category) {
         ConversionCategory.LENGTH -> convertLength(value, fromUnit, toUnit)
@@ -467,6 +505,7 @@ fun convert(value: Double, fromUnit: String, toUnit: String, category: Conversio
         ConversionCategory.TIME -> convertTime(value, fromUnit, toUnit)
     }
 
+// A generic conversion function that works for units with a common base (e.g., meters for length)
 fun convertWithFactors(
     value: Double,
     fromUnit: String,
@@ -474,11 +513,12 @@ fun convertWithFactors(
     factors: Map<String, Double>
 ): Double {
     if (fromUnit == toUnit) return value
-    val fromFactor = factors[fromUnit] ?: return 0.0
-    val toFactor = factors[toUnit] ?: return 0.0
-    return value * fromFactor / toFactor
+    val fromFactor = factors[fromUnit] ?: return 0.0 // Factor to convert 'from' unit to base unit
+    val toFactor = factors[toUnit] ?: return 0.0   // Factor to convert 'to' unit to base unit
+    return value * fromFactor / toFactor // Convert to base unit, then to target unit
 }
 
+// Provides length conversion factors (base unit: Meter)
 fun convertLength(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
     value, fromUnit, toUnit, mapOf(
         "Millimeter" to 0.001, "Centimeter" to 0.01, "Meter" to 1.0, "Kilometer" to 1000.0,
@@ -486,6 +526,7 @@ fun convertLength(value: Double, fromUnit: String, toUnit: String) = convertWith
     )
 )
 
+// Provides weight conversion factors (base unit: Kilogram)
 fun convertWeight(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
     value, fromUnit, toUnit, mapOf(
         "Milligram" to 0.000001, "Gram" to 0.001, "Kilogram" to 1.0,
@@ -493,6 +534,7 @@ fun convertWeight(value: Double, fromUnit: String, toUnit: String) = convertWith
     )
 )
 
+// Provides volume conversion factors (base unit: Liter)
 fun convertVolume(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
     value, fromUnit, toUnit, mapOf(
         "Milliliter" to 0.001, "Liter" to 1.0, "Cubic Meter" to 1000.0,
@@ -501,6 +543,7 @@ fun convertVolume(value: Double, fromUnit: String, toUnit: String) = convertWith
     )
 )
 
+// Handles temperature conversion, which has unique formulas and no simple base unit
 fun convertTemperature(value: Double, fromUnit: String, toUnit: String): Double {
     if (fromUnit == toUnit) return value
     return when (fromUnit) {
@@ -526,6 +569,7 @@ fun convertTemperature(value: Double, fromUnit: String, toUnit: String): Double 
     }
 }
 
+// Provides time conversion factors (base unit: Second)
 fun convertTime(value: Double, fromUnit: String, toUnit: String) = convertWithFactors(
     value, fromUnit, toUnit, mapOf(
         "Second" to 1.0, "Minute" to 60.0, "Hour" to 3600.0, "Day" to 86400.0,
@@ -533,6 +577,7 @@ fun convertTime(value: Double, fromUnit: String, toUnit: String) = convertWithFa
     )
 )
 
+// A preview function to see the UI in Android Studio's design view
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun UnitConverterScreenPreview() {
