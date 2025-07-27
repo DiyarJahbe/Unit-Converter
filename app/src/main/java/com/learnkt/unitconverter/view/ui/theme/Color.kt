@@ -1,4 +1,4 @@
-package com.learnkt.unitconverter.ui.theme
+package com.learnkt.unitconverter.view.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
